@@ -13,7 +13,7 @@ def minOperations(n):
     operations = 0
     if n <= 1:
         return 0
-    for i in range(2, n + 1):
+    for i in range(1, n + 1):
         '''
         check if n could be broken into smaller parts
         '''

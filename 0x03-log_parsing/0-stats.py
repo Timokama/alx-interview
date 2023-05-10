@@ -1,59 +1,71 @@
 #!/usr/bin/python3
-"""
-Script that reads stdin line by line and computes metrics:
-- Input format: <IP Address> - [<date>] "GET /projects/260 HTTP/1.1" <status
-                code> <file size>
-- After every 10 lines and/or a keyboard interruption (CTRL + C), print these
-    statistics from the beginning:
-Example:
-    File size: 5213
-    200: 2
-    401: 1
-    403: 2
-    404: 1
-    405: 1
-    500: 3
-"""
+""" This is my problem :'v """
 import sys
-stcd = {"200": 0, "301": 0, "400": 0, "401": 0,
-        "403": 0, "404": 0, "405": 0, "500": 0}
-summ = 0
+import re
+import signal
+from collections import OrderedDict
 
 
-def prn_stats():
-    """
-    Function that print stats about log
-    """
-    global summ
+def search_items(line, s):
+    """ Search the items to positionate """
+    regexu = r"\s\d{3}\s\d{1,}"
+    txt = re.search(regexu, line)
+    word = txt.group()
+    word = word[1:]
 
-    print('File size: {}'.format(summ))
-    stcdor = sorted(stcd.keys())
-    for each in stcdor:
-        if stcd[each] > 0:
-            print('{}: {}'.format(each, stcd[each]))
+    regexd = r"\d{3}\s"
+    left = re.search(regexd, word)
+
+    code = left.group()
+    code = code[:-1]
+
+    regext = r"\s\d{1,}"
+    right = re.search(regext, word)
+
+    size = right.group()
+    size = size[1:]
+    size = int(size)
+
+    add_code(code, s)
+
+    return size
+
+
+def add_code(code, codes):
+    """ Count the status code """
+    try:
+        codes[code] += 1
+    except KeyError:
+        pass
+
+
+def print_all(stat):
+    """ Print all """
+    stat = OrderedDict(stat)
+
+    for key, value in stat.items():
+        if value is not 0:
+            print("{}: {}".format(key, value))
 
 
 if __name__ == "__main__":
-    cnt = 0
+    status = {"200": 0, "301": 0, "400": 0, "401": 0,
+              "403": 0, "404": 0, "405": 0, "500": 0}
+    file_size = 0
+    i = 0
+
     try:
-        """ Iter the standar input """
-        for data in sys.stdin:
-            try:
-                fact = data.split(' ')
-                """ If there is a status code """
-                if fact[-2] in stcd:
-                    stcd[fact[-2]] += 1
-                """ If there is a lenght """
-                summ += int(fact[-1])
-            except:
-                pass
-            """ Printing control """
-            cnt += 1
-            if cnt == 10:
-                prn_stats()
-                cnt = 0
+        for lines in sys.stdin:
+            file_size += search_items(lines, status)
+
+            if i is not 0 and i % 9 == 0:
+                print("File size: {:d}".format(file_size))
+                print_all(status)
+
+            i += 1
     except KeyboardInterrupt:
-        prn_stats()
-        raise
-    else:
-        prn_stats()
+        pass
+    finally:
+        print("File size: {:d}".format(file_size))
+        print_all(status)
+        sys.exit(0)
