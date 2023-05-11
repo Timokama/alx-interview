@@ -1,71 +1,47 @@
 #!/usr/bin/python3
-""" This is my problem :'v """
-import sys
-import re
-import signal
-from collections import OrderedDict
+""" script that reads stdin line by line and computes metrics """
 
+if __name__ == '__main__':
 
-def search_items(line, s):
-    """ Search the items to positionate """
-    regexu = r"\s\d{3}\s\d{1,}"
-    txt = re.search(regexu, line)
-    word = txt.group()
-    word = word[1:]
+    import sys
 
-    regexd = r"\d{3}\s"
-    left = re.search(regexd, word)
+    def print_results(statusCodes, fileSize):
+        """ Print statistics """
+        print("File size: {:d}".format(fileSize))
+        for statusCode, times in sorted(statusCodes.items()):
+            if times:
+                print("{:s}: {:d}".format(statusCode, times))
 
-    code = left.group()
-    code = code[:-1]
-
-    regext = r"\s\d{1,}"
-    right = re.search(regext, word)
-
-    size = right.group()
-    size = size[1:]
-    size = int(size)
-
-    add_code(code, s)
-
-    return size
-
-
-def add_code(code, codes):
-    """ Count the status code """
-    try:
-        codes[code] += 1
-    except KeyError:
-        pass
-
-
-def print_all(stat):
-    """ Print all """
-    stat = OrderedDict(stat)
-
-    for key, value in stat.items():
-        if value is not 0:
-            print("{}: {}".format(key, value))
-
-
-if __name__ == "__main__":
-    status = {"200": 0, "301": 0, "400": 0, "401": 0,
-              "403": 0, "404": 0, "405": 0, "500": 0}
-    file_size = 0
-    i = 0
+    statusCodes = {"200": 0,
+                   "301": 0,
+                   "400": 0,
+                   "401": 0,
+                   "403": 0,
+                   "404": 0,
+                   "405": 0,
+                   "500": 0
+                   }
+    fileSize = 0
+    n_lines = 0
 
     try:
-        for lines in sys.stdin:
-            file_size += search_items(lines, status)
-
-            if i is not 0 and i % 9 == 0:
-                print("File size: {:d}".format(file_size))
-                print_all(status)
-
-            i += 1
+        """ Read stdin line by line """
+        for line in sys.stdin:
+            if n_lines != 0 and n_lines % 10 == 0:
+                """ After every 10 lines, print from the beginning """
+                print_results(statusCodes, fileSize)
+            n_lines += 1
+            data = line.split()
+            try:
+                """ Compute metrics """
+                statusCode = data[-2]
+                if statusCode in statusCodes:
+                    statusCodes[statusCode] += 1
+                fileSize += int(data[-1])
+            except:
+                pass
+        print_results(statusCodes, fileSize)
     except KeyboardInterrupt:
-        pass
-    finally:
-        print("File size: {:d}".format(file_size))
-        print_all(status)
-        sys.exit(0)
+        """ Keyboard interruption, print from the beginning """
+        print_results(statusCodes, fileSize)
+        raise
