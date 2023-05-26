@@ -1,61 +1,56 @@
 #!/usr/bin/python3
-""" N queens backtracking """
-import sys
+
+'''
+N queens
+'''
+
+from sys import argv
 
 
-class NQueen:
-    """ Class Queens """
-
-    def __init__(self, n):
-        """ Constructor """
-        self.n = n
-        self.x = [0 for i in range(n + 1)]
-        self.res = []
-
-    def place(self, k, i):
-        """ Check if a secure place
-        """
-
-        for j in range(1, k):
-            if self.x[j] == i or \
-               abs(self.x[j] - i) == abs(j - k):
-                return 0
-        return 1
-
-    def nQueen(self, k):
-        """ Resolve the nqueen
-        """
-        for i in range(1, self.n + 1):
-            if self.place(k, i):
-                self.x[k] = i
-                if k == self.n:
-                    solution = []
-                    for i in range(1, self.n + 1):
-                        solution.append([i - 1, self.x[i] - 1])
-                    self.res.append(solution)
-                else:
-                    self.nQueen(k + 1)
-        return self.res
+def is_NQueen(cell: list) -> bool:
+    '''
+    True if N Queen, False if not
+    '''
+    row_number = len(cell) - 1
+    difference = 0
+    for index in range(0, row_number):
+        difference = cell[index] - cell[row_number]
+        if difference < 0:
+            difference *= -1
+        if difference == 0 or difference == row_number - index:
+            return False
+    return True
 
 
-if len(sys.argv) != 2:
-    print("Usage: nqueens N")
-    sys.exit(1)
+def solve_NQeens(dimension: int, row: int, cell: list, outcome: list):
+    """
+    Return result of N Queens recusrivley
+    """
+    # Base case
+    if row == dimension:
+        print(outcome)
+    else:
+        for col in range(0, dimension):
+            cell.append(col)
+            outcome.append([row, col])
+            if (is_NQueen(cell)):
+                solve_NQeens(dimension, row + 1, cell, outcome)
+            cell.pop()
+            outcome.pop()
 
-N = sys.argv[1]
 
+if len(argv) != 2:
+    print('Usage: nqueens N')
+    exit(1)
 try:
-    N = int(N)
-except ValueError:
-    print("N must be a number")
-    sys.exit(1)
-
+    N = int(argv[1])
+except BaseException:
+    print('N must be a number')
+    exit(1)
 if N < 4:
-    print("N must be at least 4")
-    sys.exit(1)
-
-queen = NQueen(N)
-result = queen.nQueen(1)
-
-for i in result:
-    print(i)
+    print('N must be at least 4')
+    exit(1)
+else:
+    outcome = []
+    cell = 0
+    solve_NQeens(int(N), cell, [], outcome)
